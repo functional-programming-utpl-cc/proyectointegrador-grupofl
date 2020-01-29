@@ -128,7 +128,7 @@ writeDistribucionMedia.close()
 
 // ¿Existe una correlación entre el número de amigos y la cantidad de seguidores? (Pregunta 8)
 //Tupla de seguidores y seguidos
-val tabla = values.map({ case tweet => (tweet.userFollowersCount, tweet.userFriendsCount)})
+val tabla = values.map(tweet => (tweet.userFollowersCount, tweet.userFriendsCount))
 // Funciones lambda para el calculo de la correlacion
 val x = (tabla: List[(Double,Double)]) => tabla.map(x=> x._1)
 val y = (tabla: List[(Double,Double)]) => tabla.map(x=> x._2)
@@ -139,17 +139,17 @@ val covar = (tabla: List[(Double,Double)]) => ( sumxy(tabla).toDouble / tabla.le
 val cPearson = (tabla: List[(Double, Double)]) => covar(tabla) / ( desviacion(x(tabla)) * desviacion(y(tabla)) )
 cPearson(tabla)
 // Creacion del archivo temporal
-val tabla1 = values.map({ case tweet => (tweet.userFollowersCount.toInt, tweet.userFriendsCount.toInt)})
+val tabla1 = values.map( tweet => (tweet.userFollowersCount.toInt, tweet.userFriendsCount.toInt))
 val outTabla1 = java.io.File.createTempFile("correlacion.csv", "csv")
 val writeTabla1 = outTabla1.asCsvWriter[(Int, Int)](rfc.withHeader("Seguidores", "Seguidos") )
 tabla1.foreach(writeTabla1.write(_))
 writeTabla1.close()
-
+*/
 /* El comportamiento de los usuarios. Por cada usuario se debe presentar: la cantidad
   de seguidores y de amigos, también el número de Tweets y re-tweets. (Pregunta 9)*/
 case class UserTweet(username: String, text: String, isRT: Boolean)
 // Funcion valida si es twewt o no
-def isReTweet(text: String): Boolean = text.toLowerCase().startsWith("rt")
+def isReTweet(text: String): Boolean = text.startsWith("RT")
 // valor que llama a cada uno de los datos de text
 val textclass = values.map(tw => UserTweet(tw.fromUser, tw.text, isReTweet(tw.text)))
     .groupBy(us => (us.username, us.isRT)).map({case (k,v) => (k, v.length)})
@@ -170,7 +170,8 @@ val usuarios = values.map(tw => (tw.fromUser, tw.userFollowersCount.toInt, tw.us
     avfollfr(kv._2, false),
     textclass.get((kv._1, false)).getOrElse(0),
     textclass.get((kv._1, true)).getOrElse(0)))
-// Creacion del archivo temporal
+
+/*// Creacion del archivo temporal
 val outUsuarios = java.io.File.createTempFile("usuarios.csv", "csv")
 val writeUsuarios = outUsuarios.asCsvWriter[(String, Int, Int, Int, Int)](rfc.withHeader("Usuario", "Seguidores",
       "Seguidos", "nroTweets", "nroReTweets") )
@@ -186,3 +187,5 @@ val outUserMention = java.io.File.createTempFile("userMention.csv", "csv")
 val writeUserMention = outUserMention.asCsvWriter[(String, Int)](rfc.withHeader("user", "nroMentions") )
 userMention.foreach(writeUserMention.write(_) )
 writeUserMention.close()
+
+ */
