@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/vega@5.9.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@4.0.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6.2.1"></script>
+    <title>Proyecto Programaci&oacute;n Funcional y Reactiva</title>
+    <link rel="icon" type="image/png" href="img/utpla.jpg">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <style type="text/css">
+        body {
+            background-image: url(img/fondo.jpg);
+            background-size: cover;
+            background-repeat: no-repeat;
+        }
+    </style>
+    <style media="screen">
+        .vega-actions a {
+            margin-right: 5px;
+        }
+    </style>
+    <br>
+</head>
+<body style="color: aquamarine">
+<center><FONT SIZE=9><strong>N&uacute;mero de publicaciones de tweets y Retweets por hora</strong></FONT></center>
+<!-- Container for the visualization -->
+<hr>
+<br><br><br>
+<table align="center" border="5" width="95%">
+    <tr>
+        <td>
+            <center><FONT SIZE=6 color="#d2b48c"><strong>Tweets por hora</strong></FONT></center>
+        </td>
+        <td>
+            <center><FONT SIZE=6 color="#d2b48c"><strong>Descripción</strong></FONT></center>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div id="vis1"></div>
+            <script>
+                const vlSpec1 = {
+                    $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+                    data: {
+                        "url": "data/countHoursTweet.csv"
+                    },
+                    "width": 930,
+                    "height": 650,
+                    mark: 'bar',
+                    encoding: {
+                        x: {
+                            field: 'Hour',
+                            type: 'quantitative',
+                            title: 'Hora',
+                        },
+                        y: {
+                            field: 'Count Tweet',
+                            type: 'quantitative',
+                            title: 'Nro Tweets'
+                        }
+                    }
+                };
+                vegaEmbed('#vis1', vlSpec1);
+            </script>
+        </td>
+        <td>
+            <center><FONT SIZE=6 color="#d2b48c"><strong>En el gráfico se presentan los resultados del análisis del
+                número de tweets por hora. En el eje X tenemos la hora del día en formato 24 horas y en Y tenemos la
+                cantidad de Tweets. Al haber analizado el archivo con los datos obtenidos y según la gráfica los
+                usuarios hicieron uso de twitter publicando alrededor de 382 tweets a las 11 de la mañana.
+            </strong></FONT></center>
+        </td>
+    </tr>
+</table>
+<br><br><br>
+<table align="center" border="5" width="95%">
+    <tr>
+        <td>
+            <center><FONT SIZE=6 color="#d2b48c"><strong>Re Tweets por Hora</strong></FONT></center>
+        </td>
+        <td>
+            <center><FONT SIZE=6 color="#d2b48c"><strong>Descripción</strong></FONT></center>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div id="vis2"></div>
+            <script>
+                const vlSpec2 = {
+                    $schema: 'https://vega.github.io/schema/vega-lite/v4.json',
+                    data: {
+                        "url": "data/countHoursRetweet.csv"
+                    },
+                    "width": 930,
+                    "height": 650,
+                    mark: 'bar',
+                    encoding: {
+                        x: {
+                            field: 'Hour',
+                            type: 'quantitative',
+                            title: 'Hora',
+                            //"scale": {"domain": []}
+                        },
+                        y: {
+                            field: 'Count ReTweet',
+                            type: 'quantitative',
+                            title: 'nro Retweet'
+                        }
+                    }
+                };
+                vegaEmbed('#vis2', vlSpec2);
+            </script>
+        </td>
+        <td>
+            <center><FONT SIZE=6 color="#d2b48c"><strong>En el gráfico se presentan los resultados del análisis del
+                número de Re tweets por hora. En el eje X tenemos la hora del día en formato 24 horas y en Y tenemos
+                la cantidad de Re Tweets. Al haber analizado el archivo con los datos obtenidos y según la gráfica
+                los usuarios hicieron uso de twitter publicando alrededor de 875 Re tweets a las 15 horas. En cantidad
+                de publicaciones se puede deducir que los usuarios de nuestro dataset prefieren Re twittear antes que
+                publicar un tweet
+            </strong></FONT></center>
+        </td>
+    </tr>
+</table>
+<div align="right"><a href="example3.html"><img src="img/atras.png" width=70 height=70></a></div>
+</body>
+</html>
