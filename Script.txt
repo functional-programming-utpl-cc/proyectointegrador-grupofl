@@ -1,0 +1,188 @@
+// Importacion de librerias para el uso de las excepciones
+import scala.util.{Try, Success, Failure}
+// importacion de librerias lectoras de archivos
+import java.io.File
+// importacion de libreria para fechas
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+// importacion de librerias lectoras de archivos
+import kantan.csv._
+import kantan.csv.ops._
+import kantan.csv.generic._
+import kantan.csv.java8.localDateTimeDecoder
+// asignacion del archivo CSV a un valor
+val path2DataFile = "C:\\Users\\Usuario\\Documentos\\ods_1_3.csv"
+// Adignacion del formato de fecha a un valor
+val formatDateTime = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")
+// Creacion de una clase con valores y sus tipos de dato
+case class Tweet(
+                  idStr: String,
+                  fromUser: String,
+                  text: String,
+                  createdAt: String,
+                  time: LocalDateTime,
+                  geoCoordinates: String,
+                  userLang: String,
+                  inReply2UserId: String,
+                  inReply2ScreenName: String,
+                  fromUserId: String,
+                  inReply2StatusId: String,
+                  source: String,
+                  profileImageURL: String,
+                  userFollowersCount: Double,
+                  userFriendsCount: Double,
+                  userLocation: String,
+                  statusURL: String,
+                  entitiesStr: String
+                )
+implicit val decoder : CellDecoder[LocalDateTime] = localDateTimeDecoder(formatDateTime)
+// lectura del archivo como una lista
+val dataSource = new File(path2DataFile).readCsv[List, Tweet](rfc.withHeader)
+// Eliminacion de filas vacias e inconsistentes
+val values = dataSource.collect({ case Right(tweet) => tweet }).toList
+
+// Número de Tweets y ReTweets por día. (Pregunta 1)
+val activeDayRetweet = values.filter(tweet => tweet.text.startsWith("RT")).map(tweet => tweet.time.
+    getDayOfMonth).groupBy(identity).map({case(k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outactiveDayRetweet = java.io.File.createTempFile("activedayRetweet.csv", "csv")
+val writerDayRetweet = outactiveDayRetweet.asCsvWriter[(Int, Int)](rfc.withHeader("Day", "Count ReTweet") )
+activeDayRetweet.foreach(writerDayRetweet.write(_) )
+writerDayRetweet.close()
+
+// Número de Tweets y ReTweets por día. (Pregunta 1)
+val activeDaystweet = values.filterNot(tweet => tweet.text.startsWith("RT")).map(tweet => tweet.time
+    .getDayOfMonth).groupBy(identity).map({case(k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outactiveDaystweet = java.io.File.createTempFile("activedaytweet.csv", "csv")
+val writerActiveDaystweet = outactiveDaystweet.asCsvWriter[(Int, Int)](rfc.withHeader("Day", "Count Tweet") )
+activeDaystweet.foreach(writerActiveDaystweet.write(_) )
+writerActiveDaystweet.close()
+
+// Número de Tweets y ReTweets por hora. (Pregunta 2)
+val countHoursTw = values.filterNot(tw => tw.text.startsWith("RT")).map(tweet => tweet.time.getHour).groupBy(identity)
+    .map({case(k, v) => (k, v.length)})
+print(countHoursTw)
+// Creacion del archivo temporal
+val outCountHoursTw = java.io.File.createTempFile("countHoursTweet.csv", "csv")
+val writeCountHoursTw = outCountHoursTw.asCsvWriter[(Int, Int)](rfc.withHeader("Hour", "Count Tweet") )
+countHoursTw.foreach(writeCountHoursTw.write(_) )
+writeCountHoursTw.close()
+
+// Número de Tweets y ReTweets por hora. (Pregunta 2)
+val countHoursRtw = values.filter(tweet => tweet.text.startsWith("RT")).map(tweet => tweet.time.getHour).
+    groupBy(identity).map({case(k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outCountHoursRtw = java.io.File.createTempFile("countHoursRetweet.csv", "csv")
+val writeCountHoursRtw = outCountHoursRtw.asCsvWriter[(Int, Int)](rfc.withHeader("Hour", "Count ReTweet") )
+countHoursRtw.foreach(writeCountHoursRtw.write(_) )
+writeCountHoursRtw.close()
+
+// Aplicaciones más utilizadas para publicar Tweets. (Pregunta 3)
+val usingApp = values.filterNot(tweet => tweet.text.startsWith("RT")).
+    map(tweet => tweet.source.split(">")).map(tw=> tw(1).split("<")).map(tw=> tw(0)).
+    groupBy(identity).map({case(k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outUsingApp = java.io.File.createTempFile("appUsada.csv", "csv")
+val writeUsingApp = outUsingApp.asCsvWriter[(String , Int)](rfc.withHeader("Aplicacion", "nro VecesUsada"))
+usingApp.foreach(writeUsingApp.write(_))
+writeUsingApp.close()
+
+
+// Distribución de Hashtags. (Pregunta 4)
+val hashtag= values.map(tweet => ujson.read(tweet.entitiesStr).obj("hashtags").arr.length).groupBy(identity).
+  map({case (k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val out4 = java.io.File.createTempFile("nroHashtag.csv", "csv")
+val writertag = out4.asCsvWriter[(Int, Int)](rfc.withHeader("nroHashtag", "nroTweets") )
+hashtag.foreach(writertag.write(_) )
+writertag.close()
+
+// Distribucion de Mentions (Pregunta 5)
+val mentions = values.map(tweet => ujson.read(tweet.entitiesStr).obj("user_mentions").arr.length).groupBy(identity).
+  map({case (k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outMentions = java.io.File.createTempFile("nroMentions.csv", "csv")
+val writeMentions = outMentions.asCsvWriter[(Int, Int)](rfc.withHeader("nroMentions", "nroTweets") )
+mentions.foreach(writeMentions.write(_) )
+writeMentions.close()
+
+// Distribucion de Urls (Pregunta 6)
+val distribucionUrls = values.map(tweet => ujson.read(tweet.entitiesStr).obj("urls").arr.length).groupBy(identity).
+  map({case (k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outDistribucionUrls = java.io.File.createTempFile("nroUrls.csv", "csv")
+val writeDistribucionUrls = outDistribucionUrls.asCsvWriter[(Int, Int)](rfc.withHeader("nroUrls", "nroTweets") )
+distribucionUrls.foreach(writeDistribucionUrls.write(_) )
+writeDistribucionUrls.close()
+
+// Distribucion Media (Pregunta 7)
+def excep(t: Tweet) = Try{ ujson.read(t.entitiesStr).obj("media").arr.length}
+val distribucionMedia = values.map(tweet => excep(tweet) match{case Success(v) => v case Failure(e) => 0}).groupBy(identity).
+  map({case (k, v) => (k, v.length)})
+// Creacion del archivo temporal
+val outDistribucionMedia = java.io.File.createTempFile("distribucionMedia.csv", "csv")
+val writeDistribucionMedia = outDistribucionMedia.asCsvWriter[(Int, Int)](rfc.withHeader("nroMedia", "nroTweets") )
+distribucionMedia.foreach(writeDistribucionMedia.write(_) )
+writeDistribucionMedia.close()
+
+// ¿Existe una correlación entre el número de amigos y la cantidad de seguidores? (Pregunta 8)
+//Tupla de seguidores y seguidos
+val tabla = values.map({ case tweet => (tweet.userFollowersCount, tweet.userFriendsCount)})
+// Funciones lambda para el calculo de la correlacion
+val x = (tabla: List[(Double,Double)]) => tabla.map(x=> x._1)
+val y = (tabla: List[(Double,Double)]) => tabla.map(x=> x._2)
+val sumxy = (tabla: List[(Double,Double)]) => tabla.map(x=> x._1 * x._2).sum
+val media = (colum: List[Double])=> colum.sum.toDouble / colum.length
+val desviacion = (colum: List[Double]) => Math.sqrt( (colum.map(x => Math.pow(x, 2)).sum / colum.length ) - Math.pow(media(colum), 2) )
+val covar = (tabla: List[(Double,Double)]) => ( sumxy(tabla).toDouble / tabla.length) - ( media(x(tabla)) * media(y(tabla)) )
+val cPearson = (tabla: List[(Double, Double)]) => covar(tabla) / ( desviacion(x(tabla)) * desviacion(y(tabla)) )
+cPearson(tabla)
+// Creacion del archivo temporal
+val tabla1 = values.map({ case tweet => (tweet.userFollowersCount.toInt, tweet.userFriendsCount.toInt)})
+val outTabla1 = java.io.File.createTempFile("correlacion.csv", "csv")
+val writeTabla1 = outTabla1.asCsvWriter[(Int, Int)](rfc.withHeader("Seguidores", "Seguidos") )
+tabla1.foreach(writeTabla1.write(_))
+writeTabla1.close()
+
+/* El comportamiento de los usuarios. Por cada usuario se debe presentar: la cantidad
+  de seguidores y de amigos, también el número de Tweets y re-tweets. (Pregunta 9)*/
+case class UserTweet(username: String, text: String, isRT: Boolean)
+// Funcion valida si es twewt o no
+def isReTweet(text: String): Boolean = text.toLowerCase().startsWith("rt")
+// valor que llama a cada uno de los datos de text
+val textclass = values.map(tw => UserTweet(tw.fromUser, tw.text, isReTweet(tw.text)))
+    .groupBy(us => (us.username, us.isRT)).map({case (k,v) => (k, v.length)})
+// Funcion calculadora de promedio de seguidores, seguidos
+def avfollfr(ffdata: List[Tuple3[String, Int, Int]], isFollowers: Boolean):Int = {
+  val avg = (nums: List[Int]) => nums.sum / nums.length
+  val countersList = ffdata.map(t3 => (t3._2, t3._3))
+  if(isFollowers)
+    avg(countersList.flatMap(t2 => List(t2._1)))
+  else
+    avg(countersList.flatMap(t2 => List(t2._2)))
+}
+// valor con tuplas que llaman a las funciones y devuelven (usuario, seguidores, seguidos, tw,Rtw)
+val usuarios = values.map(tw => (tw.fromUser, tw.userFollowersCount.toInt, tw.userFriendsCount.toInt))
+  .groupBy(_._1)
+  .map(kv => (kv._1,
+    avfollfr(kv._2, true),
+    avfollfr(kv._2, false),
+    textclass.get((kv._1, false)).getOrElse(0),
+    textclass.get((kv._1, true)).getOrElse(0)))
+// Creacion del archivo temporal
+val outUsuarios = java.io.File.createTempFile("usuarios.csv", "csv")
+val writeUsuarios = outUsuarios.asCsvWriter[(String, Int, Int, Int, Int)](rfc.withHeader("Usuario", "Seguidores",
+      "Seguidos", "nroTweets", "nroReTweets") )
+usuarios.foreach(writeUsuarios.write(_))
+writeUsuarios.close()
+
+//  Cuántas veces se ha mencionado a un usuario.(Pregunta 10)
+val userMention = values.flatMap(tweet => ujson.read(tweet.entitiesStr).obj("user_mentions").arr)
+    .map(tw => tw.obj("screen_name").str).groupBy(identity)
+    .map({case (k, v) => (k, v.length)}).filter(_._2 > 70)
+// Creacion del archivo temporal
+val outUserMention = java.io.File.createTempFile("userMention.csv", "csv")
+val writeUserMention = outUserMention.asCsvWriter[(String, Int)](rfc.withHeader("user", "nroMentions") )
+userMention.foreach(writeUserMention.write(_) )
+writeUserMention.close()
